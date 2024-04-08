@@ -1,0 +1,577 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AMS Beamer series / Bologna FC / Template
+% Andrea Omicini
+% Alma Mater Studiorum - Università di Bologna
+% mailto:andrea.omicini@unibo.it
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\documentclass[handout]{beamer}\mode<handout>{\usetheme{default}}
+%
+\documentclass[presentation, 9pt]{beamer}\mode<presentation>{\usetheme{AMSBolognaFC}}
+%\documentclass[handout]{beamer}\mode<handout>{\usetheme{AMSBolognaFC}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[T1]{fontenc}
+\usepackage{wasysym}
+\usepackage{amsmath,blkarray}
+\usepackage{soul}
+\usepackage[minted,most]{tcolorbox}
+\usepackage{centernot}
+\usepackage{fontawesome}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\usepackage{multicol}
+\setminted[scala]{fontsize=\small,frame=lines,baselinestretch=1,obeytabs=true, tabsize=2}
+\setminted[yaml]{fontsize=\large,frame=lines,linenos,baselinestretch=1,obeytabs=true, tabsize=2}
+\usepackage[ddmmyyyy]{datetime}
+\setminted{fontsize=\footnotesize}
+\renewcommand{\dateseparator}{}
+%\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\newcommand{\version}{1}
+
+\usepackage[
+	%backend=biber,
+	backend=bibtex,
+%	citestyle=authoryear-icomp,
+%	maxcitenames=1,
+	bibstyle=numeric,
+	style=ieee]{biblatex}
+\usepackage{graphicx}
+
+	\makeatletter
+
+%\addbibresource{biblio.bib}
+
+\bibliography{biblio}
+
+
+\newcommand\extrafootertext[1]{%
+    \bgroup
+    \renewcommand\thefootnote{\fnsymbol{footnote}}%
+    \renewcommand\thempfootnote{\fnsymbol{mpfootnote}}%
+    \footnotetext[0]{#1}%
+    \egroup
+}
+
+\newcommand{\citeinslide}[1]{\cite{#1}\extrafootertext{\scriptsize\cite{#1} \fullcite{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title[Engineering Swarm Behaviours through HAC]
+{Engineering Swarm Behaviours through (Hybrid) Aggregate Computing}
+%
+%
+\author[\sspeaker{Aguzzi}]
+{\speaker{Gianluca Aguzzi} \href{mailto:gianluca.aguzzi@unibo.it}{gianluca.aguzzi@unibo.it} }
+\institute[DISI, Univ.\ Bologna]
+{%Dipartimento di Informatica -- Scienza e Ingegneria (DISI)\\
+\textsc{Alma Mater Studiorum} -- Universit{\`a} di Bologna \\[0.1cm]
+%\textbf{Talk @} \bold{International Conference on Autonomic Computing and Self-Organizing Systems (ACSOS)}\\[0.15cm]
+%\includegraphics[width=0.15\textwidth]{img/qr-code-today.png}
+}
+%
+\renewcommand{\dateseparator}{/}
+\date[\today]{\today}
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\lstdefinelanguage{scala}{
+  keywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,lazy,%
+    type,val,var,while,with,yield,forSome},
+  otherkeywords={=>,<-,<\%,<:,>:,\#},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]""",
+  basicstyle=\lst@ifdisplaystyle\footnotesize\fi\ttfamily,
+  emphstyle=\bfseries
+}
+\definecolor{ddarkgreen}{rgb}{0,0.5,0}
+\lstdefinelanguage{scafi}{frame=single,basewidth=0.5em,language={scala},
+keywordstyle=\color{blue}\textbf, commentstyle=\color{ddarkgreen},
+keywordstyle=[2]\color{red}\textbf, keywords=[2]{rep,nbr,foldhood,foldhoodPlus,aggregate,branch,spawn},
+keywordstyle=[3]\color{gray}, keywords=[3]{Me,AroundMe,Everywhere,Forever}, %,@@,@@@
+keywordstyle=[4]\color{red}\textbf, keywords=[4]{in,out,rd},
+keywordstyle=[5]\color{violet}, keywords=[5]{evolve,when,andNext,workflow,C,gossip},
+keywordstyle=[6]\color{orange}, keywords=[6]{Available,Serving,Done,Waiting,Removing}}
+
+\newcommand{\hsplit}[2]{
+\begin{minipage}{0.48\textwidth}
+#1
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+#2
+\end{minipage}
+}
+\newcommand{\hsplits}[4]{
+\begin{minipage}{#1\textwidth}
+#3
+\end{minipage}
+\hfill
+\begin{minipage}{#2\textwidth}
+#4
+\end{minipage}
+}
+
+\newcommand{\lbl}[1]{\textbf{\textcolor{gray!90!white}{#1}}}
+\newcommand{\enf}[1]{{\textcolor{red}{#1}}}
+\newcommand{\bo}[1]{\textbf{#1}}
+
+\newcommand{\imgh}[2]{
+\begin{figure}
+\centering
+\includegraphics[width=#1\textwidth]{img/#2}
+\end{figure}
+}
+\newcommand{\imgv}[2]{
+\begin{figure}
+\centering
+\includegraphics[height=#1\textheight]{img/#2}
+\end{figure}
+}
+
+\newtcblisting{mycode}[3]{%
+  boxsep=0pt,
+  boxrule=0pt,
+  arc=1mm, 
+  left=1mm,
+  %auto outer arc,
+  size=fbox,%tight,
+  %colframe=blue!40!black, colframe=black!30!white,
+  %colbacktitle=blue!80!white,
+  colback=blue!5,
+  %toprule=0.1mm, bottomrule=0.1mm, rightrule=0.1mm, leftrule=1mm, 
+  listing only,
+  listing options={language=scafi, alsoletter={-},
+    backgroundcolor={},
+  	columns=fullflexible,
+  	lineskip={-1.5pt},
+  	xleftmargin=0px,
+  	belowskip={0px},
+  	aboveskip={0px},
+  	frame=none,
+  	#2
+  },
+  title={#3},#1
+}
+\lstdefinestyle{s}{basicstyle=\ttfamily\footnotesize}
+\lstdefinestyle{ss}{basicstyle=\ttfamily\scriptsize}
+\lstdefinestyle{sss}{basicstyle=\ttfamily\tiny}
+\lstdefinestyle{conf}{language={},morecomment=[l][\color{darkgreen}]{\#},
+basicstyle=\ttfamily\scriptsize}
+
+\newcommand{\question}[1]{\textcolor{darkgray}{\emph{\bo{#1}}}}
+\newcommand{\refslide}[1]{Slide~\ref{#1}}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{macro-ac.tex}
+\frame{\titlepage}
+\begin{frame}
+\frametitle{Outline}
+\tableofcontents
+\end{frame}
+\section{Swarm Behaviors -- Overview}
+\begin{frame}{Swarm Behaviors}
+\begin{alertblock}{Definition}
+	A \emph{swarm behavior} a \underline{collective} behavior that emerges from the interaction of a group of agents. 
+\end{alertblock}
+\begin{exampleblock}{Taxonomy}
+	From a swarm robotics perspective, swarm behaviors can be classified into three main categories~\citeinslide{DBLP:journals/swarm/BrambillaFBD13}:
+	\begin{itemize}
+		\item \emph{Spatial-organization behaviors}: the agents organize themselves in a specific spatial configuration
+		\item \emph{Navigation behaviors}: the agents collectively navigate in the environment following a specific strategy
+		\item \emph{Collective Decision-Making}: the agents collectively make decisions based on the information they have
+	\end{itemize}
+\end{exampleblock}
+\end{frame}
+\begin{frame}{Spatial-organization behaviors}
+\begin{center}
+	\begin{columns}
+		\begin{column}{0.31\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Aggregation}}
+		\end{column}
+		\begin{column}{0.31\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Dispersion}}
+		\end{column}
+		\begin{column}{0.31\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Flocking}}
+		\end{column}
+	\end{columns}
+\end{center}
+\end{frame}
+\begin{frame}{Navigation behaviors}
+\begin{center}
+	\begin{columns}
+		\begin{column}{0.32\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Exploration}}
+		\end{column}
+		\begin{column}{0.32\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Collective Motion}}
+		\end{column}
+		\begin{column}{0.32\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Group Transportation}}
+		\end{column}
+	\end{columns}
+\end{center}
+\end{frame}
+\begin{frame}{Collective Decision-Making}
+	\begin{columns}
+		\begin{column}{0.32\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Exploration}}
+		\end{column}
+		\begin{column}{0.32\textwidth}
+			\includegraphics[width=\textwidth]{example-image-a}
+			\centering
+			\Large{\textbf{Collective Motion}}
+		\end{column}
+	\end{columns}
+\end{frame}
+\begin{frame}[allowframebreaks]{Engineering Swarm Behaviors}
+	\begin{alertblock}{Definition}
+		\emph{Engineering swarm behaviors} is the process of \underline{designing}, \underline{implementing}, and \underline{deploying} algorithms that enable a group of agents to exhibit a specific collective behavior.
+	\end{alertblock}
+	\begin{exampleblock}{Challenges}
+		\begin{itemize}
+			\item \emph{Scalability}: the collective behavior should scale with the number of agents
+			\item \emph{Robustness}: even in case of failures, the collective behavior should be maintained
+			\item \emph{Flexibility}: the collective behavior should be easily adaptable to different scenarios
+			\item \emph{Efficiency}: the collective behavior should be efficient in terms of energy and time
+		\end{itemize}
+	\end{exampleblock}
+	\begin{exampleblock}{Properties}
+		\begin{itemize}
+			\item \emph{Emergence}: the collective behavior emerges from the interaction of the agents
+			\item \emph{Decentralization}: the collective behavior is achieved \underline{without} a central controller
+			\item \emph{Self-organization}: the collective behavior is achieved through \underline{local} interactions
+			\item \emph{Homogeneity}: the agents are \underline{homogeneous} and have the same capabilities
+			\item \emph{Limited Communication}: the agents have limited communication capabilities
+		\end{itemize}
+	\end{exampleblock}
+	\begin{block}{State-of-the-art}
+		\begin{itemize}
+			\item \emph{manual design}: the collective behavior is manually designed through 
+			\begin{itemize}
+				\item bio-inspired algorithms, macroprogramming languages \faArrowRight \, \underline{aggregate programming}
+			\end{itemize}
+			\item \emph{automatic design}: the collective behavior is automatically designed through machine learning techniques
+			\begin{itemize}
+				\item reinforcement learning, evolutionary algorithms, \underline{multi-agent reinforcement learning}
+			\end{itemize}
+			\item \emph{\bold{hybrid design}}: a combination of manual and automatic design
+		\end{itemize}
+	\end{block}
+\end{frame}
+\section{Aggregate Computing Toolchain}
+\subsection{ScaFi}
+\subsection{MacroSwarm}
+\section{Hybrid Aggregate Computing}
+\subsection{Application-level}
+\subsection{Runtime-level}
+
+%===============================================================================
+\begin{frame}{Aggregate Programming -- What we want}
+	\begin{exampleblock}{Goal}
+		\begin{itemize}
+			\item a \bold{minimal core} to cover the main functionality of field calculus
+			\item a \bold{set of libraries} that cover the main building blocks
+			\item an \bold{high-level API} for domain-specific applications
+		\end{itemize}
+	\end{exampleblock}
+	\begin{exampleblock}{Challenges}
+		\begin{itemize}
+			\item Support several kinds of devices
+			\begin{itemize}
+				\item \emph{constrained, commodity, consumer, server}
+			\end{itemize}
+			\item Support several infrastructures
+			\begin{itemize}
+				\item \emph{peer-to-peer, server-based, cloud-edge} %-- \underline{pulverization? Nicolas talk}
+			\end{itemize}
+			\item Expressive and simple enough to reduce the cognitive load
+		\end{itemize}
+	\end{exampleblock}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Aggregate programming: current implementations}
+	\begin{center}
+	A large number of incarnations and implementations have been developed over the years, with different \emph{trade-offs} and \emph{goals}.
+	\end{center}
+	\begin{exampleblock}{External DSL}
+		\begin{itemize}
+			\item \bold{Proto}~\cite{proto}: first incarnation of FC
+			\begin{itemize}
+				\item \faThumbsUp \, \emph{good performance} \faArrowRight \, \emph{low-level}
+				\item \faThumbsDown \, \emph{hard to use} \faArrowRight \, \emph{hard to maintain}
+			\end{itemize}
+			\item \bold{Protelis}~\cite{protelis}: an external DSL based on Xtext
+			\begin{itemize}
+				\item \faThumbsUp \, \emph{good ergonomics} \faArrowRight \, \emph{high-level}
+				\item \faThumbsUp \, \emph{extensive libraries} \faArrowRight \, \emph{easy to use}
+				\item \faThumbsDown \, \emph{hard to maintain}
+				\item \faThumbsDown \, \emph{JVM-based} \faArrowRight \, \emph{hard to port to constrained devices}
+			\end{itemize}
+		\end{itemize}
+	\end{exampleblock}
+
+	\begin{exampleblock}{Internal DSL}
+		\begin{itemize}
+			\item \bold{FCPP}~\cite{fcpp}: a performance-oriented internal DSL in C++
+			\begin{itemize}
+				\item \faThumbsUp \, \emph{good performance} \faArrowRight \, \emph{low-level}
+				\item \faThumbsDown \, \emph{hard to use} \faArrowRight \, \emph{bad ergonomics}
+			\end{itemize}
+			\item \underline{\bold{ScaFi}}~\cite{scafi}: a high-level internal DSL in Scala (current reference implementation and focus of this talk)
+			\begin{itemize}
+				\item \faThumbsUp \, \emph{good ergonomics} \faArrowRight \, \emph{high-level}
+				\item \faThumbsUp \, \emph{extensive libraries} \faArrowRight \, \emph{easy to use}
+				\item \faThumbsUp \, \emph{Cross-platform}
+				\item \faThumbsDown \, Scala Native \faArrowRight \, \emph{hard to port to constrained devices}
+			\end{itemize}
+		\end{itemize}
+	\end{exampleblock}
+
+    \begin{exampleblock}{Experimental}
+			\begin{itemize}
+        \item \bold{Collektive}\footnote{https://github.com/Collektive/collektive}: a high-level DSL in Kotlin leveraging the compiler plugin and the Kotlin Multiplatform
+        \item \bold{RuFi}\footnote{https://github.com/lm98/rufi}: a minimal core in Rust (WIP)
+			\end{itemize}
+		\end{exampleblock}
+\end{frame}
+\begin{frame}[c, plain]
+\begin{center}
+	%\includegraphics[width=0.2\textwidth]{img/qr-code-scafi.png}\\
+	{\Huge \textbf{ScaFi} (\bold{Sca}la \bold{Fi}elds)}\\
+	{\large A Scala toolkit providing an \emph{internal domain-specific} language, \emph{libraries}, a \emph{simulation} environment, and \emph{runtime} support for \bold{practical} aggregate computing systems development} \\[0.3cm]
+	\includegraphics[width=0.2\textwidth]{img/gradient-scafi.png}
+	\includegraphics[width=0.35\textwidth]{img/scr-result.png}
+	\includegraphics[width=0.215\textwidth]{img/obstacle-avoidance.png}
+\end{center}
+\end{frame}
+\begin{frame}{ScaFi: Organization}
+\centering
+\includegraphics[width=0.9\textwidth]{img/scafi-project-org.pdf}
+\end{frame}
+%\begin{frame}{ScaFi: Design}
+%\centering
+%\includegraphics[width=0.8\textwidth]{img/scafi-design.drawio.pdf}
+%\end{frame}
+
+\begin{frame}[fragile]{ScaFi: syntax as a core language/API}
+
+	\begin{mycode}{}{}{}
+trait Constructs {
+	// the unique identifier of the local device 
+	def mid(): ID
+	
+	// applies fun to the previous result, or to init at the first call
+	def rep[A](init: A)(fun: (A) => A): A
+	
+	// evaluation of expr at the currently-considered neighbor
+	def nbr[A](expr: => A): A
+	
+	// accumulates available evaluations of expr, with acc/init monoid
+	def foldhood[A](init: => A)(acc: (A,A)=>A)(expr: => A): A
+	
+	// splits computation: th where cond is true, el everywhere/time else
+	def branch[A](cond: => Boolean)(th: => A)(el: => A): A
+	
+	// perception of local sensor
+	def sense[A](name: CNAME): A
+	
+	// perception of neighbourhood sensor
+	def nbrvar[A](name: CNAME): A
+	...
+}
+\end{mycode}
+\end{frame}
+\begin{frame}{ScaFi: Cross-platform}
+	%ScaFi leverages Scala.js and Scala Native to be a multi-target framework
+	%\begin{itemize}
+	%	\item ScaFi-web~\cite{DBLP:conf/coordination/AguzziCMPV21} is an example of an application that uses the js variant of ScaFi.
+	%\end{itemize}
+	\centering
+	\includegraphics[width=0.9\textwidth]{img/multi-platform.drawio}
+\end{frame}
+\begin{frame}[fragile]{ScaFi: setup an aggregate application}
+\begin{mycode}{}{}{}
+package experiments
+// STEP 1 Choose an incarnation (simulated or real)
+import it.unibo.scafi.incarnations.BasicSimulationIncarnation._
+
+// STEP 2 Define the aggregate program including the right libraries
+class MyProgram extends AggregateProgram with Libs {
+	// STEP 2.1 Define main logic of the program
+	override def main(): Any = rep(0)(_ + 1)
+}
+
+// STEP 3 Platform/Node setup (both in simulation/real)
+
+// STEP 3.1 in case of ScaFi simulation:
+object SimulationRunner extends Launcher {
+  Settings.Sim_ProgramClass = "experiments.MyAggregateProgram"
+  Settings.ShowConfigPanel = true
+  launch()
+}
+\end{mycode}
+\end{frame}
+\begin{frame}{An aggregate computing playground -- ScaFi Web!}
+\centering
+\url{https://scafi.github.io/web/}
+\centering
+\includegraphics[width=0.8\textwidth]{img/gradient-web.png}
+\end{frame}
+
+\begin{frame}{ScaFi Blocks}
+ScaFi Blocks is a visual programming environment for ScaFi.
+\centering
+\includegraphics[width=\textwidth]{img/scafiblocks.png}
+\end{frame}
+\begin{frame}{MacroSwarm}
+	\begin{alertblock}{What}
+		MacroSwarm\footnote{\url{https://scafi.github.io/macro-swarm/}}~\cite{macroswarm-arxiv} is a ScaFi library for programming swarm robotics applications.
+	\end{alertblock}
+	\begin{exampleblock}{How}
+		\begin{itemize}
+			\item A MacroSwarm program is a function from \emph{sensing} field to \emph{action} field
+			\begin{itemize}
+				\item \emph{sensing} field: the information perceived by the agents (e.g., the distance from a source)
+				\item \emph{action} field: the action to be performed by the agents (e.g., a velocity vector)
+			\end{itemize}
+			\item The action field then should be translated into the actual action of the agents based on the specific robot capabilities
+			\begin{itemize}
+				\item e.g., a velocity vector can be translated into motor commands
+			\end{itemize}
+		\end{itemize}
+	\end{exampleblock}
+	%\centering
+	%
+\end{frame}
+\begin{frame}{MacroSwarm: API structure}
+	\centering
+	\includegraphics[width=\textwidth]{img/api-structure.drawio.pdf}
+\end{frame}
+\begin{frame}{MacroSwarm: Example}
+	\centering
+	\includegraphics[width=0.9\textwidth]{img/macro-swarm.png}
+\end{frame}
+
+\begin{frame}{Towards Hybrid Aggregate Computing}
+	\begin{alertblock}{What}
+		\emph{Hybrid Aggregate Computing} is the process of combining \emph{manual} (aggregate programming) and \emph{automatic} design techniques to engineer swarm behaviors.
+	\end{alertblock}
+	\begin{exampleblock}{Why}
+		\begin{itemize}
+			\item \emph{Manual design} is good for designing \emph{simple} and \emph{well-understood} behaviors
+			\item \emph{Automatic design} is good for designing \emph{complex} and \emph{unknown} behaviors
+			\item \emph{Hybrid design} is good for combining the best of both worlds
+		\end{itemize}
+	\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Research Agenda}
+	\bold{Goals}:
+	\begin{itemize}
+	  \item \underline{functionality} (e.g., a certain collective behaviour)
+	  \item \underline{non-functionality} (e.g., energy consumption)
+	\end{itemize}
+	\bold{Means}:
+	\begin{itemize}
+	  \item \underline{system structures}
+	  \item \underline{\emph{execution strategy}}
+	  \item \underline{\emph{algorithms}}
+	\end{itemize}
+	\begin{center}
+	  \includegraphics[width=0.8\textwidth]{img/roadmap.pdf}
+	\end{center}
+\end{frame}
+\begin{frame}{Hybrid Aggregate Computing -- Execution Strategy}
+	\begin{exampleblock}{Distributed schedulers}
+	  \begin{itemize}
+		\item The aggregete computing model does not \underline{enforce} a global-synchronization
+		\item \emph{\underline{Distributed}} schedulers~\citeinslide{DBLP:conf/acsos/AguzziCV22}: \emph{\underline{local}} decisions on the \emph{\underline{rounds}} of the aggregate program
+		\item Idea: \emph{\underline{learning}} the \emph{\underline{best}} scheduling strategy directly by-doing
+	  \end{itemize}
+	  \begin{center}
+	  \includegraphics[width=0.9\textwidth]{img/algorithm-learning.png}
+	  \end{center}
+	\end{exampleblock}
+\end{frame}
+\begin{frame}{Hybrid Aggregate computing -- Algorithms}
+	\begin{exampleblock}{Collective Program Sketching}
+	  \begin{itemize}
+		\item \emph{\underline{holes}}: \emph{\underline{blocks}} of the aggregate program depending on \emph{\underline{environment dynamics}}
+		\item \emph{\underline{sketching}}: \emph{\underline{partial}} specification of the aggregate program
+		\item Idea~\citeinslide{DBLP:conf/coordination/AguzziCV22}: \emph{\underline{synthesis}} of the \emph{\underline{holes}} by \emph{\underline{learning}} from the \emph{\underline{realistic simulation}}
+	  \end{itemize}
+	  \begin{center}
+	  \includegraphics[width=0.5\textwidth]{img/synthesis-3.png}
+	  \end{center}
+	\end{exampleblock}
+\end{frame}
+\begin{frame}{Hybrid Aggregate computing -- Algorithms}
+	\begin{exampleblock}{Field-Informed reinforcement learning}
+	  \begin{itemize}
+		\item Aggregate computing is used to \emph{\underline{inform}} the learning process
+		\begin{itemize}
+		  \item Speeding up the training \& Reducing the search space \citeinslide{acgnn}
+		\end{itemize} 
+		\item Field used as a way to produce a stygmergic representation of the environment
+		\item Learning performed through \emph{\underline{deep reinforcement learning}}
+		\item Graph-neural networks used as a policy function approximator
+	  \end{itemize}
+	\centering
+	  \includegraphics[width=0.6\textwidth]{img/architecture.pdf}
+	\end{exampleblock}
+\end{frame}
+\begin{frame}{Conclusion}
+	\begin{alertblock}{Takeaways}
+		\begin{itemize}
+			\item \emph{Swarm behaviors} are collective behaviors that emerge from the interaction of a group of agents
+			\item \emph{Aggregate computing} is a programming model that provides a high-level API for engineering swarm behaviors
+			\item \emph{ScaFi} is a Scala toolkit that provides an internal DSL, libraries, a simulation environment, and runtime support for practical aggregate computing systems development
+			\item \emph{MacroSwarm} is a ScaFi library for programming swarm robotics applications
+			\item \emph{Hybrid Aggregate Computing} is the process of combining manual and automatic design techniques to engineer swarm behaviors
+		\end{itemize}
+	\end{alertblock}
+\end{frame}
+%===============================================================================
+
+%/////////
+\frame{\titlepage}
+%/////////
+
+%===============================================================================
+\section*{\refname}
+%===============================================================================
+
+%%%%
+\setbeamertemplate{page number in head/foot}{}
+%/////////
+\begin{frame}[allowframebreaks]{References}
+\def\bibfont{\footnotesize}
+\printbibliography
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
